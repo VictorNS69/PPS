@@ -1,0 +1,172 @@
+#!/bin/bash
+##ESTA DA DE NOTA UN 9 (CREO)
+
+## VICTOR NIEVES 
+## JORGE DIAZ
+
+#Las funciones
+function tienelaVar(){
+    if ! test $MINIENTREGA_CONF; then
+         #echo "MINIENTREGA_CONF no esta definida"
+	 exit 64
+    fi
+}
+
+function esUnDirectorio(){
+    if ! test -d ${MINIENTREGA_CONF}; then
+        #echo "No es un directorio valido"
+	exit 64
+    fi  
+}
+
+function esDirectorioLegible(){
+    if ! test -r ${MINIENTREGA_CONF}; then
+        #echo "No es legible el directorio"
+	exit 64
+    fi
+}
+
+function noEsDirectorioVacio(){
+    if test `ls -F ${MINIENTREGA_CONF} | grep -v /| wc -l` -eq 0 ; then
+        #echo "el directorio esta vacio"
+	exit 64
+    fi
+}
+
+function comprobarFormatoFecha(){
+    regex='[0-9]{4}-[0-1][0-9]-[0-3][0-9]'
+    if ! [[ $MINIENTREGA_FECHALIMITE =~ $regex ]]; then
+        #echo "el formato de la fecha no es correcto"
+	exit 65
+    fi
+}
+
+function existeArchivoDelParametro(){
+    for archivo in `ls ${MINIENTREGA_CONF}/*`; do
+        if test $archivo == ${MINIENTREGA_CONF}/$1; then
+            return
+        fi
+    done
+    #echo "No existen los archivos del parametro"
+    exit 66
+}
+
+function estaEnFecha(){
+    #Creamos estas variables para poder trabajar mejor con la fecha
+    anio=`date +%Y` #Año actual
+    mes=`date +%m` #Mes actual
+    dia=`date +%d` #Dia actual
+    anioLimite=${MINIENTREGA_FECHALIMITE:0:4} #Año limite de entrega
+    mesLimite=${MINIENTREGA_FECHALIMITE:5:2}  #Mes limite de entrega
+    diaLimite=${MINIENTREGA_FECHALIMITE:8:2}  #Dia limite de entrega
+
+
+    if [ $anio -gt $anioLimite ];then  #Comprobamos si el año es mayor que el limite
+        #echo "Superada fecha limite"
+	exit 65
+    elif [ $anio -eq $anioLimite ]; then  #Si los años son iguales se sigue, si es menor, esta en el plazo
+        if [ $mes -gt $mesLimite ]; then  #Comprobamos si el mes es mayor que el limte
+            	#echo "superada fecha limite"
+		exit 65
+        elif [ $mes -eq $mesLimite ]; then  #Si los meses son iguales se sigue, si es menor, esta en el plazo
+            if [ $dia -gt $diaLimite ]; then  #Comprobamos si el dia es mayor que el limite, hemos considerado que el dia limite esta permitido
+                #echo "superada fecha limite"
+		exit 65
+            fi
+        fi
+    fi
+}
+
+
+
+#Funcion para comprobar que existen los ficheros y son legibles
+function existenYLegiblesFicheros(){
+    for fichero in ${MINIENTREGA_FICHEROS}; do
+        if test -e ${PWD}/$fichero; then
+            if ! test -r ${PWD}/$fichero; then
+                #echo "No existen los ficheros"
+		exit 66
+            fi
+        else 
+		#echo "No existen los ficheros"
+		exit 66
+        fi
+    done
+}
+
+function comprobarDestino(){
+    if test -d ${MINIENTREGA_DESTINO}; then
+        if ! test -w ${MINIENTREGA_DESTINO}; then
+            	#echo "No se ha podido crear o no existe el destino"
+		exit 73
+        fi
+    else 
+	#echo "No se ha podido crear o no existe el destino"
+	exit 73
+    fi
+}
+
+function crearCarpetaUsuarioSiNoExiste(){
+    if [ ! -d "$MINIENTREGA_DESTINO/$USER" ] && [ ! -r "$MINIENTREGA_DESTINO/$USER" ]; then
+        mkdir -p "$MINIENTREGA_DESTINO/$USER"
+    fi
+    if [ ! -d "$MINIENTREGA_DESTINO/$USER" ]; then	
+	#echo "no se ha podido crear la carpeta de usuario"
+	exit 73
+    fi
+}
+
+#----------------------------
+#Cuerpo del programa
+
+#Comprobamos que los argumentos son validos y si son -h o --help
+if [ $# -ne 1 ]; then
+    echo "minientrega.sh: Error(EX_USAGE), uso incorrecto del mandato. \"Succes\"" 1>&2
+    echo "minientrega.sh+ Uso: <<Error: Numero de argumentos diferente a 1.>>" 1>&2
+    exit 64
+else
+    if [ $1 == "-h" ] || [ $1 == "--help" ]; then
+        echo "minientrega.sh: Uso: <<.minientrega.sh [@param]>>"
+        echo "minientrega.sh: <<Copia archivos los ficheros apropiados de un directorio del usuario a otro que es el de entrega>>"
+        exit 0
+    fi
+fi
+
+#Comprobamos que la variable exista
+tienelaVar
+
+#Comprobamos que la variable dirige a un directorio
+esUnDirectorio
+
+#Comprobamos que el directorio es legible
+esDirectorioLegible
+
+#Comprobamos que el directorio no está vacio
+noEsDirectorioVacio
+
+#Comprobamos que el parametro con le que se ejecuto el parametro, es un archivo de configuracion
+existeArchivoDelParametro $1
+
+#Si lo es, se carga la configuracion
+source ${MINIENTREGA_CONF}/$1
+
+#Se comprueba el formato de la fecha de la configuracion antes de hacer nada mas
+comprobarFormatoFecha
+
+#Comprobamos que la entrega este en fecha
+estaEnFecha
+
+#Comprobamos que los ficheros existen
+existenYLegiblesFicheros
+
+#Comprobamos que la carpeta de usuario y si no existe se crea
+crearCarpetaUsuarioSiNoExiste
+
+#Comprobamos que la carpeta destino existe y es legible
+comprobarDestino
+
+#echo "TODO CORRECTO"
+
+#Como la carpeta existe, es legible, y existen los ficheros y son legibles, se copian
+cp ${MINIENTREGA_FICHEROS} ${MINIENTREGA_DESTINO}/${USER}/.
+

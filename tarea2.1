@@ -1,0 +1,52 @@
+//AUTOR: VÍCTOR NIEVES SÁNCHEZ 
+//ESTA DA DE NOTA UN 10.
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "auxiliar.h"
+#include <sysexits.h>
+
+int main (int argc, char* argv []){
+  argv0="delreves";
+  int i=0;
+  int k=0;
+  char text[2048];
+  char aux[2048];
+  if(argc!=1){
+    if(strcmp(argv[1],"-h")==0){
+      printf("delreves: Uso: delreves [ fichero... ]\n");
+      printf("delreves: Invierte el contenido de las lineas de los ficheros o por la entrada estandar.\n");
+      return EX_OK;
+    }
+
+    for(i=1;i<argc;i++){
+      FILE *fd;
+      fd=fopen(argv[i], "r+");
+      if (!fd || fd==NULL){
+	Error(EX_NOINPUT,"El fichero \"%s\" no puede ser leido", argv[i]);
+	return EX_NOINPUT;
+      }
+      else{
+	while(fgets(text, 2048, fd) !=NULL){
+	  for (k=0;k<strlen(text);k++){
+	    aux[k]=text[(strlen(text)-2)-k];
+	  }
+	  fprintf(stdout, "%s\n", aux);
+	  memset(aux,'\0',strlen(aux));
+	}
+	fclose (fd);
+      }
+    }
+  }
+  else{
+    while(fgets(text,2048,stdin) !=NULL){
+      for (k=0;k<strlen(text);k++){
+	aux[k]=text[(strlen(text)-2)-k];
+      }
+      fprintf(stdout, "%s\n", aux);
+      memset(aux,'\0',strlen(aux));
+    }
+  }
+  return EX_OK;
+}
+

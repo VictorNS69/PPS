@@ -1,0 +1,85 @@
+//AUTOR: VÍCTOR NIEVES SÁNCHEZ
+//ESTA NO DA DE NOTA UN 10, FALTAN MUCHAS COSAS.
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sysexits.h>
+#include "auxiliar.h"
+
+#define MAXLINEA 2048
+#define LINEASINICIALES 2
+
+int main ( int argc, char *argv[] )
+{
+  argv0="bocabajo";
+  char linea[MAXLINEA];
+  char ** lineas;
+  unsigned int tamanyo = 0;
+  unsigned int nleidos = 0;
+  int i, j;
+  FILE *entrada;
+   
+  if (argc == 2 && (strcmp (argv[1], "-h") == 0 || (strcmp (argv[1], "--help") == 0) ) ) {
+    printf ("%s: Uso: bocabajo [fichero...]\n", argv[0]);
+    printf ("%s: Invierte el orden de las lineas de los ficheros (o de la entrada).\n", argv[0]);
+    return EX_OK;
+  }
+  if (argc==1) {
+    tamanyo = LINEASINICIALES;
+    lineas = (char **) malloc(sizeof (char *) * tamanyo);
+      
+    while ( fgets (linea, MAXLINEA, stdin) ) {
+      if ( nleidos >= tamanyo ) {
+	lineas = (char **) realloc ( lineas, sizeof (char *) * tamanyo * 2);
+	tamanyo *= 2;
+	if ( !lineas || lineas == NULL ) {
+	  Error(EX_NOINPUT,"El fichero \"%s\" no puede ser leido", argv[1]);
+	  return EX_NOINPUT;
+	}
+      }
+      lineas[nleidos] = strdup (linea);
+      nleidos++;
+    }
+      
+    for ( i = 0; i < nleidos; i++ )
+      printf ("%s", lineas[nleidos - i - 1]);
+         
+    for ( i = 0; i < nleidos; i++ )
+      free (lineas[i]);
+    free (lineas);
+  }else {
+    for (i = 1; i < argc; i++) {
+      tamanyo = LINEASINICIALES;
+      lineas = (char **) malloc(sizeof (char *) * tamanyo);
+      nleidos = 0;
+         
+      if ( (entrada = fopen (argv[i], "rt") ) == NULL) {
+	Error(EX_NOINPUT,"El fichero \"%s\" no puede ser leido", argv[i]);
+	return EX_NOINPUT;
+      } else {
+	while (fgets (linea, MAXLINEA, entrada) != NULL) {
+	  if ( nleidos >= tamanyo ) {
+	    lineas = (char **) realloc ( lineas, sizeof (char *) * tamanyo * 2);
+	    tamanyo *= 2;
+	    if ( !lineas ) {
+	      Error(EX_NOINPUT,"El fichero \"%s\" no puede ser leido", argv[i]);
+	      return EX_NOINPUT;
+	    }
+	  }
+	  lineas[nleidos] = strdup (linea);
+	  nleidos++;
+	}
+	fclose(entrada);
+            
+	for (j = 0; j < nleidos; j++)
+	  printf ("%s", lineas[nleidos - 1 - j]);
+               
+	for (j = 0; j < nleidos; j++)
+	  free (lineas[j]);
+	free (lineas);
+      }
+    }
+  }
+  return EX_OK;
+}
+
