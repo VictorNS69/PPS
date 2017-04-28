@@ -1,0 +1,17 @@
+.\" Manpage for minientrega.sh
+.\" Contact victor.nieves.sanchez@alumnos.upm.es
+.TH man 1 "17 Oct 2016" "1.0" "minientrega.sh man page"
+.SH NAME
+minientrega.sh \- Copiar varios archivos a la carpeta destino
+.SH SYNOPSIS
+minientrega.sh [USERNAME]
+.SH DESCRIPTION
+minientrega.sh copiara una serie de archivos a la carpeta de destino
+.SH OPTIONS
+-h, --help : Some help about minientrega.sh
+.SH SEE ALSO
+--
+.SH BUGS
+No known bugs.
+.SH AUTHOR
+Victor Nieves Sánchez (victor.nieves.sanchez@alumnos.upm.es)
