@@ -1,4 +1,4 @@
 # PPS
 Programación Para Sistemas.
 
-Estos programas, fueron mi solución a una serie de prácticas propuestas en PPS en el curso 16/17
+Estos programas, fueron mi solución a una serie de prácticas propuestas en PPS en el curso 16/17 de Ingeniería Informática de la UPM.
